@@ -16,6 +16,7 @@ describe('CartItemControlComponent', () => {
       id: 123,
       name: 'Mock Product',
       price: 100,
+      type: 'promo',
     };
 
     ServiceMock = jasmine.createSpyObj('CartServiceMock', {

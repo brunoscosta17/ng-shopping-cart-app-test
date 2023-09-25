@@ -6,114 +6,112 @@ import { map } from 'rxjs/operators';
 import { Product } from '../core/interfaces/product.interface';
 
 interface CartProducts {
-    items: CartItem[];
-    total: number;
+  items: CartItem[];
+  total: number;
 }
 
 @Injectable()
 export class CartService {
-    protected _products = {
-        items: [],
-        total: 0,
-    };
+  protected _products = {
+    items: [],
+    total: 0,
+  };
 
-    _cartState = new Subject<CartProducts>();
+  _cartState = new Subject<CartProducts>();
 
-    constructor(
-        protected dataService: CartDataService,
-    ) { }
+  constructor(protected dataService: CartDataService) { }
 
-    getStoredCartItems() {
-      this.dataService
-        .fetchAll()
-        .subscribe({
-          next: (items) => {
-            this._products.items = items;
-            this._products.total = this.calculateTotal(items);
-            this.updateCartState(this._products);
-          },
-        });
+  getStoredCartItems() {
+    this.dataService
+      .fetchAll()
+      .subscribe({
+        next: (items) => {
+          this._products.items = items;
+          this._products.total = this.calculateTotal(items);
+          this.updateCartState(this._products);
+        },
+      });
+  }
+
+  addProduct(product: Product) {
+    const existingItem = this._products.items.find(item => item.product.id === product.id);
+
+    if (existingItem) {
+      existingItem.amount += 1;
+      this.calculateSubtotal(existingItem);
+    } else {
+      const newItem: CartItem = {
+        product,
+        amount: 1,
+        subtotal: existingItem ? existingItem.subtotal : product.price,
+      };
+      this.calculateSubtotal(newItem);
+      this._products.items.push(newItem);
     }
+    this._products.total = this.calculateTotal(this._products.items);
+    this.updateCartState(this._products);
+  }
 
-    addProduct(product: Product) {
+  removeProduct(product: Product, shouldRemoveAll = false) {
 
-      const existingItem = this._products.items.find(item => item.product.id === product.id);
+    const existingItem = this._products.items.find(item => item.product.id === product.id);
 
-      if (existingItem) {
-        existingItem.amount += 1;
-        this.calculateSubtotal(existingItem);
+    if (existingItem) {
+      if (shouldRemoveAll || existingItem.amount === 1) {
+        const index = this._products.items.indexOf(existingItem);
+        this._products.items.splice(index, 1);
       } else {
-        const newItem: CartItem = {
-          product,
-          amount: 1,
-          subtotal: existingItem ? existingItem.subtotal : product.price,
-        };
-        this.calculateSubtotal(newItem);
-        this._products.items.push(newItem);
+        existingItem.amount -= 1;
+        this.calculateSubtotal(existingItem);
       }
 
       this._products.total = this.calculateTotal(this._products.items);
       this.updateCartState(this._products);
     }
+  }
 
-    removeProduct(product: Product, shouldRemoveAll = false) {
-      const existingItem = this._products.items.find(item => item.product.id === product.id);
+  //HELPER METHODS
 
-      if (existingItem) {
-        if (shouldRemoveAll || existingItem.amount === 1) {
-          const index = this._products.items.indexOf(existingItem);
-          this._products.items.splice(index, 1);
-        } else {
-          existingItem.amount -= 1;
-          this.calculateSubtotal(existingItem);
-        }
+  protected updateCartState(products: CartProducts) {
+      this._products = products;
+      this._cartState.next(products);
+  }
 
-        this._products.total = this.calculateTotal(this._products.items);
-        this.updateCartState(this._products);
-      }
-    }
+  protected calculateTotal(items: CartItem[]): number {
+      return items.reduce((total, item) => total += item.subtotal, 0);
+  }
 
-    //HELPER METHODS
+  protected calculateSubtotal(item: CartItem): CartItem {
+      item.subtotal = item.product.price * item.amount;
+      return item;
+  }
 
-    protected updateCartState(products: CartProducts) {
-        this._products = products;
-        this._cartState.next(products);
-    }
+  protected getProducts() {
+    return this._products;
+  }
 
-    protected calculateTotal(items: CartItem[]): number {
-        return items.reduce((total, item) => total += item.subtotal, 0);
-    }
+  getItems() {
+    return this.getProducts().items;
+  }
 
-    protected calculateSubtotal(item: CartItem): CartItem {
-        item.subtotal = item.product.price * item.amount;
-        return item;
-    }
+  getItem(id: number) {
+    return this.getProducts().items.find(item => item.id === id);
+  }
 
-    protected getProducts() {
-      return this._products;
-    }
+  getTotal() {
+    return this.getProducts().total;
+  }
 
-    getItems() {
-      return this.getProducts().items;
-    }
+  getCartUpdates() {
+    return this._cartState.pipe(map(() => this.getItems()));
+  }
 
-    getItem(id: number) {
-      return this.getProducts().items.find(item => item.id === id);
-    }
+  getItemUpdates(id: number) {
+    return this._cartState.pipe(map(() => this.getItem(id)));
+  }
 
-    getTotal() {
-      return this.getProducts().total;
-    }
+  getTotalUpdates() {
+    return this._cartState.pipe(map((s) => s.total));
+  }
 
-    getCartUpdates() {
-      return this._cartState.pipe(map(() => this.getItems()));
-    }
-
-    getItemUpdates(id: number) {
-      return this._cartState.pipe(map(() => this.getItem(id)));
-    }
-
-    getTotalUpdates() {
-      return this._cartState.pipe(map((s) => s.total));
-    }
 }
