@@ -1,27 +1,7 @@
-<!-- <ng-container *forProduct="let product; forProductOfType: product?.type || 'default'">
-  <div class="product-image"></div>
-  <h4>{{ product.name }}</h4>
-  <cart-item-control
-    class="float-right"
-    [product]="product"
-  ></cart-item-control>
-</ng-container>
-
-<div class="list-group">
-  <div class="list-group-item" *ngFor="let product of products">
-    <ng-container
-      *ngTemplateOutlet="getTemplate(product); context: getContext(product)"
-    ></ng-container>
-  </div>
-</div> -->
-
 <ng-container *forProduct="let product; forProductOfType: 'default'">
   <div class="product-image"></div>
-  <h4>{{ product.name }}</h4>
-  <cart-item-control
-    class="float-right"
-    [product]="product"
-  ></cart-item-control>
+  <h4>{{ product.name }} (custom default)</h4>
+  <cart-item-control [product]="product" class="float-right"></cart-item-control>
 </ng-container>
 
 <div class="list-group">
