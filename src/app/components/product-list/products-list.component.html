@@ -1,4 +1,4 @@
-<ng-container *forProduct="let product; forProductOfType: 'default'">
+<ng-container *forProduct="let product; ofType: 'default'">
   <div class="product-image"></div>
   <h4>{{ product.name }} (custom default)</h4>
   <cart-item-control [product]="product" class="float-right"></cart-item-control>
@@ -6,8 +6,6 @@
 
 <div class="list-group">
   <div class="list-group-item" *ngFor="let product of products">
-    <ng-container
-      *ngTemplateOutlet="getTemplate(product); context: getContext(product)"
-    ></ng-container>
+    <ng-container *ngTemplateOutlet="getTemplate(product); context: getContext(product)"></ng-container>
   </div>
 </div>

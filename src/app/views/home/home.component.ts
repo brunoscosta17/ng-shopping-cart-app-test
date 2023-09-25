@@ -9,7 +9,7 @@ import { Product } from '../../core/interfaces/product.interface';
     selector: 'home-page',
     templateUrl: 'home.component.html',
     styles: [],
-    changeDetection: ChangeDetectionStrategy.Default
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomePageComponent implements OnInit {
 
